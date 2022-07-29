@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+message Broadcast {
+	bytes origin = 1;
+	uint32 seq = 2;
+	uint32 ttl = 3;
+	bytes data = 4;
+	optional bytes nonce = 5;
+}

@@ -1,0 +1,42 @@
+{
+	"name": "@screamingvoid/network",
+	"version": "0.0.2",
+	"description": "Network stack for the Void project",
+	"main": "lib/index.js",
+	"author": {
+		"name": "Tomas Ravinskas",
+		"email": "tomas.rav@gmail.com",
+		"url": "https://tomasrav.me/"
+	},
+	"license": "MIT",
+	"scripts": {
+		"prebuild": "protocol-buffers src/schema.proto -o src/messages.js",
+		"build": "swc src -d lib",
+		"types": "tsc",
+		"test": "tape test/*.js"
+	},
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org"
+	},
+	"devDependencies": {
+		"@swc/cli": "^0.1.57",
+		"@swc/core": "^1.2.220",
+		"@types/node": "^18.6.2",
+		"brittle": "^2.4.0",
+		"graphology-types": "^0.24.4",
+		"protocol-buffers": "^5.0.0",
+		"typescript": "^4.7.4"
+	},
+	"dependencies": {
+		"@hyperswarm/dht": "^6.2.1",
+		"codecs": "^3.0.0",
+		"eventemitter2": "^6.4.6",
+		"graphology": "^0.24.1",
+		"graphology-shortest-path": "^2.0.1",
+		"hyperswarm": "^4.2.0",
+		"lru": "^3.1.0",
+		"protocol-buffers-encodings": "^1.1.1",
+		"sodium-universal": "^3.1.0"
+	}
+}
