@@ -7,3 +7,29 @@ message Broadcast {
 	bytes data = 4;
 	optional bytes nonce = 5;
 }
+
+message PeerState {
+	bool ephemeral = 1;
+	repeated bytes lookingup = 2;
+	repeated bytes announcing = 3;
+	repeated bytes connected = 4;
+	optional bytes userData = 5;
+}
+
+enum PacketType {
+	CONNECTED = 1;
+	DISCONNECTED = 2;
+	BOOTSTRAP_REQUEST = 3;
+	BOOTSTRAP_RESPONSE = 4;
+	STATE = 5;
+	BROADCAST = 6;
+	MESSAGE = 7;
+}
+
+message GossipPacket {
+	required PacketType type = 1;
+	optional bytes publicKey = 2;
+	optional PeerState state = 3;
+	map<string, PeerState> bootstrap = 4;
+	optional bytes userData = 5;
+}

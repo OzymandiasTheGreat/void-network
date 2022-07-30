@@ -231,6 +231,7 @@ declare module "@hyperswarm/dht" {
 		on(event: "persistent", callback: () => void): this;
 		on(event: "wake-up", callback: () => void): this;
 		on(event: "network-change", callback: (interfaces: any) => void): this;
+		on(event: string, callback: (...args: any[]) => void): this;
 	}
 
 	export default VoidDHT;

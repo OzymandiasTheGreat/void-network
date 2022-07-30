@@ -34,7 +34,38 @@ enum ERROR {
 const TTL = 255;
 const LRUSIZE = 255;
 
-export class VoidDHT extends DHT {
+interface Gossip {
+	on(
+		event: "broadcast",
+		callback: (
+			message: Buffer,
+			origin: Buffer,
+			meta: { seq: number; hops: number },
+		) => void,
+	): this;
+	on(
+		event: "message",
+		callback: (
+			message: Buffer,
+			origin: Buffer,
+			meta: {
+				seq: number;
+				hops: number;
+			},
+		) => void,
+	): this;
+	on(
+		event: "message-fallback",
+		callback: (
+			message: Buffer,
+			origin: Buffer,
+			reply: (reply: Buffer | null) => void,
+			meta: { seq: number },
+		) => void,
+	): this;
+}
+
+export class VoidDHT extends DHT implements Gossip {
 	protected _seq = 0;
 	protected _ttl: number;
 	protected _lru: LRU;
