@@ -64,7 +64,10 @@ export class VoidDHT extends HyperDHT {
 			debug?: { gossip?: boolean };
 		} = {},
 	) {
-		super(options);
+		super({
+			bootstrap: [{ host: "dht.screamingvoid.me", port: 49737 }],
+			...options,
+		});
 
 		this._ttl = options.ttl ?? TTL;
 		this._lru = new LruSet([], options.lruSize ?? LRUSIZE);
