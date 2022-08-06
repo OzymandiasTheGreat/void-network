@@ -291,8 +291,8 @@ declare module "sodium-universal" {
 	export declare const randombytes_BYTES_MAX: number;
 	export declare const randombytes_SEEDBYTES = 32;
 
-	import { Buffer } from "buffer";
-	export declare function sodium_malloc(n: number): Buffer;
+	import { Uint8Array } from "buffer";
+	export declare function sodium_malloc(n: number): Uint8Array;
 	export declare function sodium_free(n: Uint8Array): void;
 	export declare function sodium_memzero(n: Uint8Array): void;
 
@@ -312,7 +312,7 @@ declare module "sodium-universal" {
 		outlen: number,
 	): GenerichashInstance;
 
-	import { Buffer } from "buffer";
+	import { Uint8Array } from "buffer";
 	export declare function crypto_aead_chacha20poly1305_encrypt(
 		c: Uint8Array,
 		m: Uint8Array,
@@ -733,10 +733,10 @@ declare module "sodium-universal" {
 		k: Uint8Array,
 	): boolean;
 	export declare function crypto_secretbox_keygen(k: Uint8Array): void;
-	export declare const crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: Buffer;
-	export declare const crypto_secretstream_xchacha20poly1305_TAG_PUSH: Buffer;
-	export declare const crypto_secretstream_xchacha20poly1305_TAG_REKEY: Buffer;
-	export declare const crypto_secretstream_xchacha20poly1305_TAG_FINAL: Buffer;
+	export declare const crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: Uint8Array;
+	export declare const crypto_secretstream_xchacha20poly1305_TAG_PUSH: Uint8Array;
+	export declare const crypto_secretstream_xchacha20poly1305_TAG_REKEY: Uint8Array;
+	export declare const crypto_secretstream_xchacha20poly1305_TAG_FINAL: Uint8Array;
 	export declare function crypto_secretstream_xchacha20poly1305_keygen(
 		k: Uint8Array,
 	): void;

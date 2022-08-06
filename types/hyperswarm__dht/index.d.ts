@@ -2,7 +2,7 @@ declare module "@hyperswarm/dht" {
 	import { EventEmitter } from "events";
 	import { Duplex, Readable } from "stream";
 
-	export type KeyPair = { publicKey: Buffer; secretKey: Buffer };
+	export type KeyPair = { publicKey: Uint8Array; secretKey: Uint8Array };
 	export type Node = { host: string; port: number };
 	export type HandshakePayload = {
 		error: number;
@@ -27,8 +27,8 @@ declare module "@hyperswarm/dht" {
 		socket: Duplex;
 	};
 	export type EncryptedSocket = Duplex & {
-		publicKey: Buffer;
-		remotePublicKey: Buffer;
+		publicKey: Uint8Array;
+		remotePublicKey: Uint8Array;
 		rawStream: RawStream;
 		on: (event: "open", callback: () => void) => EncryptedSocket;
 	};
@@ -37,6 +37,7 @@ declare module "@hyperswarm/dht" {
 		keyPair?: KeyPair;
 		bootstrap?: (string | Node)[];
 		port?: number;
+		bind?: number;
 		udx?: any;
 		nodes?: Node[];
 		firewalled?: boolean;
@@ -44,7 +45,7 @@ declare module "@hyperswarm/dht" {
 	};
 	export type ServerOptions = {
 		firewall?: (
-			remotePublicKey: Buffer,
+			remotePublicKey: Uint8Array,
 			remoteHandshakePayload: HandshakePayload,
 			remoteAddress: Node,
 		) => boolean;
@@ -52,19 +53,19 @@ declare module "@hyperswarm/dht" {
 
 	class Server extends EventEmitter {
 		dht: VoidDHT;
-		target: Buffer;
+		target: Uint8Array;
 		closed: boolean;
 		firewall: (
-			remotePublicKey: Buffer,
+			remotePublicKey: Uint8Array,
 			remoteHandshakePayload: HandshakePayload,
 			remoteAddress: Node,
 		) => boolean;
 
 		constructor(dht: VoidDHT, options?: ServerOptions);
 
-		get publicKey(): Buffer;
+		get publicKey(): Uint8Array;
 
-		address(): ({ publicKey: Buffer } & Node) | null;
+		address(): ({ publicKey: Uint8Array } & Node) | null;
 		close(): Promise<void>;
 		listen(keyPair?: KeyPair): Promise<void>;
 		refresh(): void;
@@ -80,19 +81,19 @@ declare module "@hyperswarm/dht" {
 	type ResponseOptions = {
 		socket?: Duplex;
 		to?: Node;
-		token?: Buffer;
+		token?: Uint8Array;
 		closerNodes?: Node[] | boolean;
 	};
 	class Request {
 		socket: Duplex;
 		from: Node;
 		to: Node;
-		token: Buffer;
+		token: Uint8Array;
 		command: number;
-		target: Buffer;
-		value: Buffer;
+		target: Uint8Array;
+		value: Uint8Array;
 
-		reply(value: Buffer | null, options?: ResponseOptions): void;
+		reply(value: Uint8Array | null, options?: ResponseOptions): void;
 		error(code: number, options?: ResponseOptions): void;
 	}
 	type RequestOptions = {
@@ -117,18 +118,18 @@ declare module "@hyperswarm/dht" {
 	};
 	export type Reply = {
 		tid: number;
-		from: Node & { id: Buffer | null };
-		to: Node & { id: Buffer | null };
-		token: Buffer | null;
+		from: Node & { id: Uint8Array | null };
+		to: Node & { id: Uint8Array | null };
+		token: Uint8Array | null;
 		closerNodes: Node[] | null;
 		error: number;
-		value: Buffer | null;
+		value: Uint8Array | null;
 	};
 
 	class VoidDHT extends EventEmitter {
 		defaultKeyPair: KeyPair;
-		defaultUserData: Buffer;
-		id: Buffer;
+		defaultUserData: Uint8Array;
+		id: Uint8Array;
 		host: string | null;
 		port: number;
 		firewalled: boolean;
@@ -137,8 +138,8 @@ declare module "@hyperswarm/dht" {
 
 		constructor(options?: DHTOptions);
 
-		static keyPair(seed?: Buffer): KeyPair;
-		static bootstrapper(port: number, options?: DHTOptions): VoidDHT;
+		static keyPair(seed?: Uint8Array): KeyPair;
+		static bootstrapper(port: number, options?: DHTOptions): this;
 
 		ready(): Promise<void>;
 		destroy(options?: { force?: true }): Promise<void>;
@@ -148,58 +149,58 @@ declare module "@hyperswarm/dht" {
 			onconnection?: (socket: EncryptedSocket) => void,
 		): Server;
 		connect(
-			remotePublicKey: Buffer,
+			remotePublicKey: Uint8Array,
 			options?: {
 				keyPair?: KeyPair;
 				nodes?: Node[];
 			},
 		): EncryptedSocket;
 		refresh(): void;
-		lookup(topic: Buffer, options?: any): Readable;
+		lookup(topic: Uint8Array, options?: any): Readable;
 		announce(
-			topic: Buffer,
+			topic: Uint8Array,
 			keyPair: KeyPair,
 			relayAddresses?: Node[],
 			options?: any,
 		): Readable;
 		unannounce(
-			topic: Buffer,
+			topic: Uint8Array,
 			keyPair: KeyPair,
 			options?: any,
 		): Promise<void>;
 		immutablePut(
-			value: Buffer,
+			value: Uint8Array,
 			options?: any,
-		): Promise<{ hash: Buffer; closestNodes: Node[] }>;
+		): Promise<{ hash: Uint8Array; closestNodes: Node[] }>;
 		immutableGet(
-			hash: Buffer,
+			hash: Uint8Array,
 			options?: any,
-		): Promise<{ value: Buffer; from: Node } | null>;
+		): Promise<{ value: Uint8Array; from: Node } | null>;
 		mutablePut(
 			keyPair: KeyPair,
-			value: Buffer,
+			value: Uint8Array,
 			options?: any,
 		): Promise<{
-			publicKey: Buffer;
+			publicKey: Uint8Array;
 			closestNodes: Node[];
 			seq: number;
-			signature: Buffer;
+			signature: Uint8Array;
 		}>;
 		mutableGet(
-			publicKey: Buffer,
+			publicKey: Uint8Array,
 			options?: { seq?: number; latest?: boolean },
 		): Promise<{
-			value: Buffer;
+			value: Uint8Array;
 			from: Node;
 			seq: number;
-			signature: Buffer;
+			signature: Uint8Array;
 		} | null>;
 		query(
 			{
 				target,
 				command,
 				value,
-			}: { target: Buffer; command: number; value?: Buffer },
+			}: { target: Uint8Array; command: number; value?: Uint8Array },
 			options?: QueryOptions,
 		): QueryStream;
 		request(
@@ -209,10 +210,10 @@ declare module "@hyperswarm/dht" {
 				command,
 				value,
 			}: {
-				token?: Buffer;
-				target?: Buffer;
+				token?: Uint8Array;
+				target?: Uint8Array;
 				command: number;
-				value?: Buffer;
+				value?: Uint8Array;
 			},
 			to: Node,
 			options?: RequestOptions,
@@ -221,7 +222,7 @@ declare module "@hyperswarm/dht" {
 			to: Node,
 			options?: RequestOptions & { size?: number },
 		): Promise<Reply>;
-		findNode(target: Buffer, options?: QueryOptions): QueryStream;
+		findNode(target: Uint8Array, options?: QueryOptions): QueryStream;
 		addNode({ host, port }: Node): void;
 		toArray(): Node[];
 

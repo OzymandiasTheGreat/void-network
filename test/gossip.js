@@ -1,10 +1,10 @@
 const test = require("brittle");
-const swarm = require("./helpers/dht");
+const { createDHT } = require("../lib/testnet");
 
 test("Broadcast message", async function (t) {
-	const { nodes } = await swarm(t);
+	const { nodes } = await createDHT(16, t, { debug: { gossip: true } });
 
-	t.plan(63);
+	t.plan(31);
 
 	const data = Buffer.from("Hello, World!");
 
@@ -13,7 +13,7 @@ test("Broadcast message", async function (t) {
 	for (const node of nodes) {
 		node.on("broadcast", (message, origin) => {
 			t.alike(message, data);
-			t.alike(origin, emitter.keyPair.publicKey);
+			t.alike(origin, emitter.defaultKeyPair.publicKey);
 		});
 	}
 
@@ -21,7 +21,7 @@ test("Broadcast message", async function (t) {
 });
 
 test("Send message", async function (t) {
-	const [a, b] = await swarm(t, 2);
+	const [a, b] = await createDHT(2, t);
 
 	t.plan(3);
 
@@ -29,16 +29,17 @@ test("Send message", async function (t) {
 
 	a.on("message", (message, origin) => {
 		t.alike(message, data);
-		t.alike(origin, b.keyPair.publicKey);
+		t.alike(origin, b.defaultKeyPair.publicKey);
 	});
 
-	b.send(a.keyPair.publicKey, data).then((res) => t.ok(res));
+	b.send(a.defaultKeyPair.publicKey, data).then((res) => t.ok(res));
 });
 
+// This one completes successfully but then hangs the whole process
 test.skip("Fallback message", async function (t) {
-	const { newNode } = await swarm(t, 8);
-	const a = newNode();
-	const b = newNode();
+	const testnet = await createDHT(8, t);
+	const a = testnet.createNode();
+	const b = testnet.createNode();
 
 	t.plan(4);
 
@@ -47,7 +48,7 @@ test.skip("Fallback message", async function (t) {
 
 	a.on("message-fallback", (message, origin, reply) => {
 		t.alike(message, data);
-		t.alike(origin, b.keyPair.publicKey);
+		t.alike(origin, b.defaultKeyPair.publicKey);
 		server.close();
 		reply(repl);
 	});
@@ -55,11 +56,11 @@ test.skip("Fallback message", async function (t) {
 	const server = a.createServer();
 	await server.listen();
 
-	const conn = b.connect(a.keyPair.publicKey);
+	const conn = b.connect(a.defaultKeyPair.publicKey);
 	conn.on("open", () =>
 		b
 			.sendFallback(
-				a.keyPair.publicKey,
+				a.defaultKeyPair.publicKey,
 				data,
 				{},
 				{

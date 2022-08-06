@@ -1,7 +1,7 @@
 declare module "codecs" {
 	export type encoder<T> = {
-		encode: (message: T) => Buffer;
-		decode: (buffer: Buffer) => T;
+		encode: (message: T) => Uint8Array;
+		decode: (buffer: Uint8Array) => T;
 	};
 	export type codec =
 		| "utf8"

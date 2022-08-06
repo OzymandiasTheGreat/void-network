@@ -5,9 +5,9 @@ declare module "hyperswarm" {
 
 	export type HyperswarmConstructorOptions<T> = {
 		keyPair?: KeyPair;
-		seed?: Buffer;
+		seed?: Uint8Array;
 		maxPeers?: number;
-		firewall?: (remotePublicKey: Buffer) => boolean;
+		firewall?: (remotePublicKey: Uint8Array) => boolean;
 		dht?: T;
 	};
 
@@ -18,10 +18,11 @@ declare module "hyperswarm" {
 	}
 
 	class PeerInfo {
-		publicKey: Buffer;
-		topics: Buffer[];
-		prioritized: boolean;
+		publicKey: Uint8Array;
+		topics: Uint8Array[];
 		client: boolean;
+		explicit: boolean;
+		reconnecting: boolean;
 		ban(): void;
 	}
 
@@ -34,17 +35,19 @@ declare module "hyperswarm" {
 		dht: T;
 		server: Server;
 		maxPeers: number;
+		destroyed: boolean;
 
+		protected _discovery: Map<string, PeerDiscovery>;
 		protected emit(event: string, ...args: any[]): boolean;
 
 		join(
-			topic: Buffer,
-			opts: { client: boolean; server: boolean },
+			topic: Uint8Array,
+			options?: { client?: boolean; server?: boolean },
 		): PeerDiscovery;
-		leave(topic: Buffer): Promise<void>;
-		joinPeer(noisePublicKey: Buffer): void; // TODO Double check return type
-		leavePeer(noisePublicKey: Buffer): void;
-		status(topic: Buffer): PeerDiscovery;
+		leave(topic: Uint8Array): Promise<void>;
+		joinPeer(publicKey: Uint8Array): void; // TODO Double check return type
+		leavePeer(publicKey: Uint8Array): void;
+		status(topic: Uint8Array): PeerDiscovery;
 		listen(): Promise<void>;
 		flush(): Promise<void>;
 		destroy(): Promise<void>;

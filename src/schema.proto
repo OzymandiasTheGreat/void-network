@@ -8,28 +8,45 @@ message Broadcast {
 	optional bytes nonce = 5;
 }
 
-message PeerState {
-	bool ephemeral = 1;
-	repeated bytes lookingup = 2;
-	repeated bytes announcing = 3;
-	repeated bytes connected = 4;
-	optional bytes userData = 5;
-}
-
 enum PacketType {
-	CONNECTED = 1;
-	DISCONNECTED = 2;
-	BOOTSTRAP_REQUEST = 3;
-	BOOTSTRAP_RESPONSE = 4;
-	STATE = 5;
-	BROADCAST = 6;
-	MESSAGE = 7;
+	PERSISTENT = 1;
+	BOOTSTRAP_REQUEST = 2;
+	BOOTSTRAP_RESPONSE = 3;
+	CONNECTED = 4;
+	DISCONNECTED = 5;
+	TOPIC_JOIN = 6;
+	TOPIC_LEAVE = 7;
+	USER_DATA = 8;
+	BROADCAST = 9;
+	MESSAGE = 10;
 }
 
-message GossipPacket {
+message Persistence {
+	required bool ephemeral = 1;
+}
+
+message Topic {
+	string name = 1;
+	bool server = 2;
+	bool client = 3;
+}
+
+message BootstrapPeer {
+	repeated bytes connected = 1;
+	map<string, Topic> topics = 2;
+	bytes userData = 3;
+}
+
+message Bootstrap {
+	map<string, BootstrapPeer> bootstrap = 1;
+}
+
+message Subscription {
+	bytes buffer = 1;
+	Topic topic = 2;
+}
+
+message Packet {
 	required PacketType type = 1;
-	optional bytes publicKey = 2;
-	optional PeerState state = 3;
-	map<string, PeerState> bootstrap = 4;
-	optional bytes userData = 5;
+	optional bytes payload = 2;
 }
