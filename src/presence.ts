@@ -16,6 +16,7 @@ import FastMap from "collections/fast-map";
 import FastSet from "collections/fast-set";
 import { encode, decode } from "./messages";
 import { BootstrapPeer, PacketType, Subscription } from "./schema";
+import { Topics } from "./topics";
 
 export type Connection = {
 	publicKey: Uint8Array;
@@ -106,9 +107,7 @@ export class VoidPresence extends EventEmitter2 {
 	online = new FastSet<Uint8Array>(null, b4a.equals, (v) =>
 		b4a.toString(v, "hex"),
 	);
-	topics = new FastMap<Uint8Array, string | null>(null, b4a.equals, (k) =>
-		b4a.toString(k, "hex"),
-	);
+	topics = new Topics();
 
 	protected id: string;
 	protected _state: State;
@@ -285,23 +284,12 @@ export class VoidPresence extends EventEmitter2 {
 
 	protected _maybeJoinTopic(sub?: Subscription | null) {
 		if (!sub) return;
-		if (sub.topic.name && !this.topics.get(sub.buffer)) {
-			this.topics.set(sub.buffer, sub.topic.name);
-		} else if (!this.topics.has(sub.buffer)) {
-			this.topics.set(sub.buffer, sub.topic.name || null);
-		}
+		this.topics.set(sub.buffer, sub.topic.name || null);
 	}
 
 	protected _maybeLeaveTopic(sub?: Subscription | null) {
 		if (!sub) return;
-		let found = false;
-		for (const { attributes } of this.graph.nodeEntries()) {
-			found =
-				attributes.announcing.has(sub.buffer) ||
-				attributes.lookingup.has(sub.buffer);
-			if (found) break;
-		}
-		if (!found) this.topics.delete(sub.buffer);
+		this.topics.delete(sub.buffer);
 	}
 
 	protected _addConnection(

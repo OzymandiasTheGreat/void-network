@@ -1,5 +1,9 @@
 declare module "collections/fast-map" {
-	type ChangeListener<K, V> = (value: V, key: K, map: Map<K, V>) => void;
+	type ChangeListener<K, V> = (
+		value: V | undefined,
+		key: K,
+		map: Map<K, V>,
+	) => void;
 	type PropertyChangeListener<T> = (
 		value: T,
 		key: string,
