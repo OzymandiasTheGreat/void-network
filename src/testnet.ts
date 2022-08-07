@@ -79,7 +79,7 @@ class TestnetSwarm {
 		}
 	}
 
-	createNode(options?: HyperswarmConstructorOptions<VoidDHT> & DHTOptions) {
+	createNode(options?: HyperswarmConstructorOptions & DHTOptions) {
 		const node = new VoidSwarm({
 			bootstrap: this.bootstrap,
 			...options,
@@ -147,7 +147,7 @@ export async function createDHT(
 
 export async function createSwarm(
 	size = 3, // My laptop can't handle bigger swarms
-	options?: Options<DHTOptions & HyperswarmConstructorOptions<VoidDHT>>,
+	options?: Options<DHTOptions & HyperswarmConstructorOptions>,
 ): Promise<TestnetSwarm> {
 	const swarm: VoidSwarm[] = [];
 	const teardown =
