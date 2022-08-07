@@ -1,6 +1,6 @@
 {
 	"name": "@screamingvoid/network",
-	"version": "0.0.2",
+	"version": "0.1.0",
 	"description": "Network stack for the Void project",
 	"main": "lib/index.js",
 	"types": "types",
@@ -21,6 +21,10 @@
 		"access": "public",
 		"registry": "https://registry.npmjs.org"
 	},
+	"files": [
+		"lib/**/*",
+		"types/**/*"
+	],
 	"devDependencies": {
 		"@swc/cli": "^0.1.57",
 		"@swc/core": "^1.2.220",
