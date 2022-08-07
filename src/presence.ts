@@ -215,7 +215,7 @@ export class VoidPresence extends EventEmitter2 {
 		}
 		this.online.addEach(online);
 		this.online.deleteEach(offline.map((id) => b4a.from(id, "hex")));
-		this.emit("online", this.online);
+		this.emit("online", this.online.clone());
 	}
 
 	protected _bootstrapper() {
@@ -508,12 +508,18 @@ export class VoidPresence extends EventEmitter2 {
 					state.announcing.set(join.buffer, join.topic.name || null);
 				}
 				this._maybeJoinTopic(join);
-				this.emit(
-					"peer-topic-join",
-					join?.buffer,
-					join?.topic,
-					publicKey,
-				);
+				if (join) {
+					const meta = {
+						...join.topic,
+						name: join.topic.name || null,
+					};
+					this.emit(
+						"peer-topic-join",
+						join?.buffer,
+						meta,
+						publicKey,
+					);
+				}
 				break;
 			case PacketType.TOPIC_LEAVE:
 				const leave = message.topic;
@@ -664,5 +670,37 @@ export class VoidPresence extends EventEmitter2 {
 
 	getPeerState(publicKey: Uint8Array): State {
 		return getPeerState(this.graph, publicKey);
+	}
+
+	get userData(): Record<string, any> {
+		return this._state.userData;
+	}
+
+	set userData(data: Record<string, any>) {
+		this._state.userData = data;
+		this.broadcast(
+			encode({
+				type: PacketType.USER_DATA,
+				data: this._codec.encode(data),
+			}),
+		);
+	}
+
+	updateUserData(data: Record<string, any>) {
+		this.userData = Object.assign(this._state.userData, data);
+	}
+
+	encodeBroadcast(message: Uint8Array): Uint8Array {
+		return encode({
+			type: PacketType.BROADCAST,
+			message,
+		});
+	}
+
+	encodeMessage(message: Uint8Array): Uint8Array {
+		return encode({
+			type: PacketType.MESSAGE,
+			message,
+		});
 	}
 }

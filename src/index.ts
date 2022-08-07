@@ -2,7 +2,7 @@
 /// <reference path="../types/hyperswarm__dht/index.d.ts" />
 /// <reference path="../types/b4a/index.d.ts" />
 import type { Duplex } from "stream";
-import type { DHTOptions, Node } from "@hyperswarm/dht";
+import type { DHTOptions, EncryptedSocket, Node } from "@hyperswarm/dht";
 import Hyperswarm, {
 	HyperswarmConstructorOptions,
 	PeerDiscovery,
@@ -10,15 +10,20 @@ import Hyperswarm, {
 } from "hyperswarm";
 import sodium from "sodium-universal";
 import b4a from "b4a";
-import { VoidDHT } from "./dht";
-import { VoidPresence } from "./presence";
 import { codec } from "codecs";
+import FastMap from "collections/fast-map";
+import FastSet from "collections/fast-set";
+import Graph from "graphology";
+import { VoidDHT } from "./dht";
+import { Connection, State, VoidPresence } from "./presence";
+import { Topics } from "./topics";
 
-export class VoidSwarm extends Hyperswarm<VoidDHT> {
+export class VoidSwarm extends Hyperswarm {
+	dht!: VoidDHT;
 	presence: VoidPresence;
 
 	constructor(
-		options?: HyperswarmConstructorOptions<VoidDHT> &
+		options?: Omit<HyperswarmConstructorOptions, "dht"> &
 			DHTOptions & {
 				userData?: Record<string, any>;
 				encoding?: codec;
@@ -114,5 +119,117 @@ export class VoidSwarm extends Hyperswarm<VoidDHT> {
 			throw new Error("Topic must be an Uint8Array or hashtag");
 		}
 		return super.leave(buffer).then(() => this.presence.onleave(buffer));
+	}
+
+	getPeerEphemeral(publicKey: Uint8Array): boolean {
+		return this.presence.getPeerState(publicKey).ephemeral;
+	}
+
+	getPeerTopics(publicKey: Uint8Array): {
+		client: FastMap<Uint8Array, string | null>;
+		server: FastMap<Uint8Array, string | null>;
+	} {
+		const state = this.presence.getPeerState(publicKey);
+		return {
+			client: state.lookingup.clone(),
+			server: state.announcing.clone(),
+		};
+	}
+
+	getPeerConnectedTo(publicKey: Uint8Array): FastSet<Uint8Array> {
+		return this.presence.getPeerState(publicKey).connected.clone();
+	}
+
+	getPeerUserData(publicKey: Uint8Array): Record<string, any> {
+		return this.presence.getPeerState(publicKey).userData;
+	}
+
+	get userData(): Record<string, any> {
+		return this.presence.userData;
+	}
+
+	set userData(data: Record<string, any>) {
+		this.presence.userData = data;
+	}
+
+	updateUserData(data: Record<string, any>) {
+		return this.presence.updateUserData(data);
+	}
+
+	get graph(): Graph<State> {
+		return this.presence.graph.copy();
+	}
+
+	get bootstrapped(): boolean {
+		return this.presence.bootstrapped;
+	}
+
+	get online(): FastSet<Uint8Array> {
+		return this.presence.online.clone();
+	}
+
+	get topics(): Topics {
+		return this.presence.topics;
+	}
+
+	broadcast(message: Uint8Array): Promise<boolean> {
+		return this.presence.broadcast(this.presence.encodeBroadcast(message));
+	}
+
+	send(target: Uint8Array, message: Uint8Array): Promise<boolean> {
+		return this.presence.send(
+			target,
+			this.presence.encodeMessage(message),
+		);
+	}
+
+	on(
+		event: "connection",
+		listener: (socket: EncryptedSocket, info: PeerInfo) => void,
+	): this;
+	on(event: "bootstrap", listener: () => void): this;
+	on(
+		event: "peer-join-seen",
+		listener: (source: Uint8Array, target: Uint8Array) => void,
+	): this;
+	on(
+		event: "peer-leave-seen",
+		listener: (source: Uint8Array, target: Uint8Array) => void,
+	): this;
+	on(event: "peer-online", listener: (peer: Uint8Array) => void): this;
+	on(event: "peer-offline", listener: (peer: Uint8Array) => void): this;
+	on(
+		event: "peer-join",
+		listener: (peer: Uint8Array, connection: Connection) => void,
+	): this;
+	on(event: "peer-leave", listener: (peer: Uint8Array) => void): this;
+	on(
+		event: "peer-topic-join",
+		listener: (
+			topic: Uint8Array,
+			meta: { name: string | null; client: boolean; server: boolean },
+			peer: Uint8Array,
+		) => void,
+	): this;
+	on(
+		event: "peer-topic-leave",
+		listener: (topic: Uint8Array, peer: Uint8Array) => void,
+	): this;
+	on(
+		event: "topic-join",
+		listener: (topic: Uint8Array, name: string | null) => void,
+	): this;
+	on(event: "topic-leave", listener: (topic: Uint8Array) => void): this;
+	on(event: "online", listener: (online: FastSet<Uint8Array>) => void): this;
+	on(
+		event: "broadcast",
+		listener: (message: Uint8Array, origin: Uint8Array) => void,
+	): this;
+	on(
+		event: "message",
+		listener: (message: Uint8Array, origin: Uint8Array) => void,
+	): this;
+	on(event: string, listener: (...args: any[]) => void): this {
+		return super.on(event as any, listener);
 	}
 }

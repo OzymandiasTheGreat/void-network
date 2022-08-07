@@ -1,14 +1,18 @@
 /// <reference types="node" />
 /// <reference path="../hyperswarm__dht/index.d.ts" />
 declare module "hyperswarm" {
-	import type { EncryptedSocket, KeyPair, Server } from "@hyperswarm/dht";
+	import type HyperDHT, {
+		EncryptedSocket,
+		KeyPair,
+		Server,
+	} from "@hyperswarm/dht";
 
-	export type HyperswarmConstructorOptions<T> = {
+	export type HyperswarmConstructorOptions = {
 		keyPair?: KeyPair;
 		seed?: Uint8Array;
 		maxPeers?: number;
 		firewall?: (remotePublicKey: Uint8Array) => boolean;
-		dht?: T;
+		dht?: HyperDHT;
 	};
 
 	class PeerDiscovery {
@@ -26,13 +30,13 @@ declare module "hyperswarm" {
 		ban(): void;
 	}
 
-	class Hyperswarm<T> {
-		constructor(options?: HyperswarmConstructorOptions<T>);
+	class Hyperswarm {
+		constructor(options?: HyperswarmConstructorOptions);
 
 		keyPair: KeyPair;
 		connections: Set<any>; // TODO Double check type
 		peers: Map<string, PeerInfo>;
-		dht: T;
+		dht: HyperDHT;
 		server: Server;
 		maxPeers: number;
 		destroyed: boolean;
@@ -55,7 +59,7 @@ declare module "hyperswarm" {
 		on(
 			event: "connection",
 			cb: (socket: EncryptedSocket, info: PeerInfo) => void,
-		): void;
+		): this;
 	}
 
 	export default Hyperswarm;
